@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "issue-register-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/issueRegister/IssueRegisterWebPart.js",
+          "manifest": "./src/webparts/issueRegister/IssueRegisterWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "IssueRegisterWebPartStrings": "lib/webparts/issueRegister/loc/{locale}.js"
+  }
+}

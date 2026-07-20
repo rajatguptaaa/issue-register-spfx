@@ -1,0 +1,19 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "useGulp": false,
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.14.0",
+    "sdksVersions": {},
+    "version": "1.23.2",
+    "libraryName": "issue-register-spfx",
+    "libraryId": "75904f86-5175-4d36-8ef6-f7c1c7dfa319",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "issue-register-spfx",
+    "solutionShortDescription": "issue-register-spfx description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

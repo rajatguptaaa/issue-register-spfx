@@ -1,8 +1,30 @@
 .issueRegister {
   overflow: hidden;
   padding: 1em;
-  color: "[theme:bodyText, default: #323130]";
-  color: var(--bodyText);
+}
+
+.homeScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 48px 24px;
+
+  button {
+    width: 260px;
+    padding: 14px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    background: #134074;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+}
+
+.screenPlaceholder {
+  padding: 24px;
 }
 
 .welcome {

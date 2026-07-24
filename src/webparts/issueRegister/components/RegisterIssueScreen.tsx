@@ -1,6 +1,16 @@
 import * as React from "react";
-import styles from "./IssueRegister.module.scss";
+import { Stack } from "@fluentui/react/lib/Stack";
+import { Text } from "@fluentui/react/lib/Text";
+import { TextField } from "@fluentui/react/lib/TextField";
+import { Dropdown, IDropdownOption } from "@fluentui/react/lib/Dropdown";
+import { DatePicker } from "@fluentui/react/lib/DatePicker";
+import { DayOfWeek } from "@fluentui/react";
+import { PrimaryButton, DefaultButton } from "@fluentui/react/lib/Button";
+import { MessageBar, MessageBarType } from "@fluentui/react/lib/MessageBar";
+import { Icon } from "@fluentui/react/lib/Icon";
+import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
+import styles from "./IssueRegister.module.scss";
 
 export interface IRegisterIssueScreenProps {
   onBack: () => void;
@@ -25,7 +35,7 @@ export type IssueDomain =
   | "Server"
   | "Other";
 
-const DOMAIN_OPTIONS: IssueDomain[] = [
+const DOMAIN_OPTIONS: IDropdownOption[] = [
   "IT Security",
   "Infrastructure",
   "Operations",
@@ -41,28 +51,29 @@ const DOMAIN_OPTIONS: IssueDomain[] = [
   "Security",
   "Server",
   "Other",
-];
+].map((d) => ({ key: d, text: d }));
 
-// Every "scale of 1-5" field (Tv, L, Av, Vv, Residual Rating) uses the
-// same 5 options — one shared array instead of repeating [1,2,3,4,5]
-// five times across the file.
-const SCALE_OPTIONS = [1, 2, 3, 4, 5];
-const RESIDUAL_SCALE_OPTIONS = [0, 1, 2, 3, 4, 5];
+const SCALE_OPTIONS: IDropdownOption[] = [1, 2, 3, 4, 5].map((n) => ({
+  key: n,
+  text: String(n),
+}));
+const RESIDUAL_SCALE_OPTIONS: IDropdownOption[] = [0, 1, 2, 3, 4, 5].map(
+  (n) => ({ key: n, text: String(n) }),
+);
 
-// Field order here matches the exact order fields appear on screen.
 interface IRegisterFormState {
   issueDomain: IssueDomain | "";
   issueDescription: string;
-  threatValue: string; // Tv, stored as "1".."5" (select values are always strings)
-  likelihoodRating: string; // L
-  assetValue: string; // Av
-  vulnerabilityValue: string; // Vv
+  threatValue: string;
+  likelihoodRating: string;
+  assetValue: string;
+  vulnerabilityValue: string;
   existingControls: string;
   issueIdentifier: string;
   towerMailId: string;
   mitigationPlan: string;
   residualIssueRating: string;
-  targetDate: string; // ISO date, e.g. "2026-08-01"
+  targetDate: string;
   remarks: string;
 }
 
@@ -84,8 +95,6 @@ const EMPTY_FORM: Omit<IRegisterFormState, "towerMailId"> = {
 type FieldName = keyof IRegisterFormState;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Only these two are optional per spec — every other field required.
 const OPTIONAL_FIELDS: FieldName[] = ["existingControls", "remarks"];
 
 function validateField(
@@ -95,19 +104,35 @@ function validateField(
 ): string {
   if (OPTIONAL_FIELDS.indexOf(field) !== -1) return "";
   if (!value.trim()) return "This field is required.";
-  if (field === "towerMailId" && !EMAIL_REGEX.test(value)) {
+  if (field === "towerMailId" && !EMAIL_REGEX.test(value))
     return "Enter a valid email address.";
-  }
-  if (field === "targetDate" && value < todayIso) {
+  if (field === "targetDate" && value < todayIso)
     return "Target date must be today or a future date.";
-  }
   return "";
+}
+
+// Converts our internal "YYYY-MM-DD" string <-> a real Date object,
+// since DatePicker works with Date, but SharePoint/PnP.js and our own
+// form state work with ISO date strings.
+function isoToDate(iso: string): Date | undefined {
+  return iso ? new Date(`${iso}T00:00:00`) : undefined;
+}
+function dateToIso(date: Date | undefined): string {
+  if (!date) return "";
+  const y = date.getFullYear();
+  const monthValue = date.getMonth() + 1;
+  const dayValue = date.getDate();
+  const m = monthValue < 10 ? `0${monthValue}` : `${monthValue}`;
+  const d = dayValue < 10 ? `0${dayValue}` : `${dayValue}`;
+  return `${y}-${m}-${d}`;
 }
 
 export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
   onBack,
-  currentUserEmail,issueService,
+  currentUserEmail,
+  issueService,
 }) => {
+  const theme = useTheme();
   const [form, setForm] = React.useState<IRegisterFormState>(() => ({
     ...EMPTY_FORM,
     towerMailId: currentUserEmail,
@@ -115,26 +140,24 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
   const [touched, setTouched] = React.useState<
     Partial<Record<FieldName, boolean>>
   >({});
-
   const [submitting, setSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submittedId, setSubmittedId] = React.useState<number | null>(null);
+
   const todayIso = React.useMemo(() => {
     const now = new Date();
     const year = now.getFullYear();
-    const monthValue = now.getMonth() + 1;
-    const dayValue = now.getDate();
-    const month = monthValue < 10 ? `0${monthValue}` : `${monthValue}`;
-    const day = dayValue < 10 ? `0${dayValue}` : `${dayValue}`;
+    const month = `0${now.getMonth() + 1}`.slice(-2);
+    const day = `0${now.getDate()}`.slice(-2);
     return `${year}-${month}-${day}`;
   }, []);
 
-   const errors: Partial<Record<FieldName, string>> = {};
+  const errors: Partial<Record<FieldName, string>> = {};
   (Object.keys(form) as FieldName[]).forEach((field) => {
-    if (touched[field]) {
+    if (touched[field])
       errors[field] = validateField(field, form[field], todayIso);
-    }
   });
+
   const isFormValid = (Object.keys(form) as FieldName[]).every(
     (field) => validateField(field, form[field], todayIso) === "",
   );
@@ -149,13 +172,27 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
     });
     setTouched(allTouched);
   };
+
+  const updateField = <K extends keyof IRegisterFormState>(
+    field: K,
+    value: IRegisterFormState[K],
+  ): void => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const resetForm = (): void => {
+    setForm({ ...EMPTY_FORM, towerMailId: currentUserEmail });
+    setTouched({});
+    setSubmitError(null);
+    setSubmittedId(null);
+  };
+
   const handleSubmit = async (): Promise<void> => {
     markAllTouched();
-    if (!isFormValid) return; // errors are now visible; stop here
+    if (!isFormValid) return;
 
     setSubmitting(true);
     setSubmitError(null);
-
     try {
       const newId = await issueService.createIssue({
         IssueDomain: form.issueDomain as IssueDomain,
@@ -183,34 +220,12 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
       setSubmitting(false);
     }
   };
- 
-  const updateField = <K extends keyof IRegisterFormState>(
-    field: K,
-    value: IRegisterFormState[K],
-  ): void => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-  const resetForm = (): void => {
-  setForm({ ...EMPTY_FORM, towerMailId: currentUserEmail });
-  setTouched({});
-  setSubmitError(null);
-  setSubmittedId(null);
-};
-  // Live Issue Score — recalculates on every render automatically,
-  // since it just reads current form values. Returns null until all
-  // four scoring fields are filled in, so we don't show "0" or "NaN"
-  // for a half-finished form.
+
   const issueScore = React.useMemo(() => {
     const { threatValue, likelihoodRating, assetValue, vulnerabilityValue } =
       form;
-    if (
-      !threatValue ||
-      !likelihoodRating ||
-      !assetValue ||
-      !vulnerabilityValue
-    ) {
+    if (!threatValue || !likelihoodRating || !assetValue || !vulnerabilityValue)
       return null;
-    }
     return (
       Number(threatValue) *
       Number(likelihoodRating) *
@@ -224,172 +239,228 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
     form.vulnerabilityValue,
   ]);
 
-  // Small reusable renderer for the five "scale of 1-5" dropdowns —
-  // avoids writing near-identical JSX five times.
   const renderScaleField = (
     field: FieldName,
     label: string,
     helpText: string,
-    options: number[] = SCALE_OPTIONS, // defaults to 1-5 for Tv/L/Av/Vv
+    options: IDropdownOption[] = SCALE_OPTIONS,
   ): React.ReactElement => (
-    <div className={styles.formField}>
-      <label>{label}</label>
-      <select
-        value={form[field]}
-        onChange={(e) => updateField(field, e.target.value as never)}
-        onBlur={() => markTouched(field)}
-      >
-        <option value="">-- Select --</option>
-        {options.map((n) => (
-          <option key={n} value={n}>
-            {n}
-          </option>
-        ))}
-      </select>
-      <p className={styles.helpText}>{helpText}</p>
-      {errors[field] && (
-        <span className={styles.fieldError}>{errors[field]}</span>
-      )}
-    </div>
+    <Dropdown
+      label={label}
+      placeholder="-- Select --"
+      options={options}
+      selectedKey={form[field] === "" ? undefined : Number(form[field])}
+      onChange={(_, option) =>
+        updateField(field, option ? String(option.key) : "")
+      }
+      onBlur={() => markTouched(field)}
+      errorMessage={errors[field]}
+      styles={{ root: { marginBottom: 4 } }}
+    />
   );
 
   return (
-  <div className={styles.screenPlaceholder}>
-    <button onClick={onBack} disabled={submitting}>← Home</button>
-    <h2>Register Issue</h2>
-
-    {submittedId !== null ? (
-      <div className={styles.successBox}>
-        <h3>✅ Issue submitted successfully</h3>
-        <p>Internal record ID: {submittedId}</p>
-        <p>
-          The official Issue ID (e.g. ISS-0001) will appear shortly once Power
-          Automate processes it.
-        </p>
-        <div style={{ display: "flex", gap: "12px", marginTop: "12px" }}>
-          <button onClick={onBack}>← Back to Home</button>
-          <button onClick={resetForm}>+ Submit Another Issue</button>
-        </div>
-      </div>
-    ) : (
-      <fieldset disabled={submitting} className={styles.formFieldset}>
-        {/* 1. Issue Domain */}
-        <div className={styles.formField}>
-          <label>Issue Domain</label>
-          <select
-            value={form.issueDomain}
-            onChange={(e) => updateField("issueDomain", e.target.value as IssueDomain)}
-            onBlur={() => markTouched("issueDomain")}
+    <Stack
+      tokens={{ padding: 24, childrenGap: 8 }}
+      className={styles.screenPlaceholder}
+    >
+      {submittedId !== null ? (
+        <Stack
+          tokens={{ childrenGap: 12, padding: 20 }}
+          styles={{
+            root: {
+              background: theme.palette.themeLighter,
+              border: `1px solid ${theme.palette.themeLight}`,
+              borderRadius: theme.effects.roundedCorner4,
+              maxWidth: 500,
+            },
+          }}
+        >
+          <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 8 }}>
+            <Icon
+              iconName="CompletedSolid"
+              styles={{ root: { color: "#3b6d11", fontSize: 20 } }}
+            />
+            <Text variant="large" styles={{ root: { fontWeight: 600 } }}>
+              Issue submitted successfully
+            </Text>
+          </Stack>
+          <Text>Internal record ID: {submittedId}</Text>
+          <Text>
+            The official Issue ID (e.g. ISS-0001) will appear shortly once Power
+            Automate processes it.
+          </Text>
+          <Stack horizontal tokens={{ childrenGap: 12 }}>
+            <DefaultButton onClick={onBack}>← Back to Home</DefaultButton>
+            <PrimaryButton onClick={resetForm}>
+              + Submit Another Issue
+            </PrimaryButton>
+          </Stack>
+        </Stack>
+      ) : (
+        <fieldset disabled={submitting} className={styles.formFieldset}>
+          <Stack
+            tokens={{ childrenGap: 16 }}
+            styles={{ root: { maxWidth: 460 } }}
           >
-            <option value="">-- Select --</option>
-            {DOMAIN_OPTIONS.map((d) => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-          {errors.issueDomain && <span className={styles.fieldError}>{errors.issueDomain}</span>}
-        </div>
+            <Dropdown
+              label="Issue Domain"
+              placeholder="-- Select --"
+              options={DOMAIN_OPTIONS}
+              selectedKey={form.issueDomain || undefined}
+              onChange={(_, option) =>
+                updateField(
+                  "issueDomain",
+                  option ? (option.key as IssueDomain) : "",
+                )
+              }
+              onBlur={() => markTouched("issueDomain")}
+              errorMessage={errors.issueDomain}
+            />
 
-        {/* 2. Issue Description */}
-        <div className={styles.formField}>
-          <label>Issue Description</label>
-          <textarea
-            value={form.issueDescription}
-            onChange={(e) => updateField("issueDescription", e.target.value)}
-            onBlur={() => markTouched("issueDescription")}
-          />
-          {errors.issueDescription && <span className={styles.fieldError}>{errors.issueDescription}</span>}
-        </div>
+            <TextField
+              label="Issue Description"
+              multiline
+              rows={3}
+              value={form.issueDescription}
+              onChange={(_, v) => updateField("issueDescription", v ?? "")}
+              onBlur={() => markTouched("issueDescription")}
+              errorMessage={errors.issueDescription}
+            />
 
-        {/* 3-6. Scoring fields */}
-        {renderScaleField("threatValue", "Threat Value (Tv)", "1 = very low impact, 5 = very high impact")}
-        {renderScaleField("likelihoodRating", "Likelihood Rating (L)", "1 = rare, 5 = almost certain to occur")}
-        {renderScaleField("assetValue", "Asset Value (Av)", "1 = very low value, 5 = very high value")}
-        {renderScaleField("vulnerabilityValue", "Vulnerability Value (Vv)", "1 = very low, 5 = very high")}
+            {renderScaleField(
+              "threatValue",
+              "Threat Value (Tv)",
+              "1 = very low impact, 5 = very high impact",
+            )}
+            {renderScaleField(
+              "likelihoodRating",
+              "Likelihood Rating (L)",
+              "1 = rare, 5 = almost certain",
+            )}
+            {renderScaleField(
+              "assetValue",
+              "Asset Value (Av)",
+              "1 = very low value, 5 = very high value",
+            )}
+            {renderScaleField(
+              "vulnerabilityValue",
+              "Vulnerability Value (Vv)",
+              "1 = very low, 5 = very high",
+            )}
 
-        {/* 7. Issue Score */}
-        <div className={styles.formField}>
-          <label>Issue Score</label>
-          <div>
-            {issueScore === null ? "Complete Tv, L, Av, Vv above to calculate" : issueScore}
-          </div>
-        </div>
+            <Stack
+              tokens={{ padding: 12 }}
+              styles={{
+                root: {
+                  background: theme.palette.themeLighter,
+                  border: `1px solid ${theme.palette.themeLight}`,
+                  borderRadius: theme.effects.roundedCorner4,
+                },
+              }}
+            >
+              <Text
+                variant="small"
+                styles={{ root: { color: theme.palette.neutralSecondary } }}
+              >
+                Issue Score
+              </Text>
+              <Text
+                variant="xLarge"
+                styles={{
+                  root: { fontWeight: 700, color: theme.palette.themePrimary },
+                }}
+              >
+                {issueScore === null
+                  ? "Complete Tv, L, Av, Vv above to calculate"
+                  : issueScore}
+              </Text>
+            </Stack>
 
-        {/* 8. Existing Controls — optional */}
-        <div className={styles.formField}>
-          <label>Existing Controls (optional)</label>
-          <textarea
-            value={form.existingControls}
-            onChange={(e) => updateField("existingControls", e.target.value)}
-            onBlur={() => markTouched("existingControls")}
-          />
-        </div>
+            <TextField
+              label="Existing Controls (optional)"
+              multiline
+              rows={2}
+              value={form.existingControls}
+              onChange={(_, v) => updateField("existingControls", v ?? "")}
+            />
 
-        {/* 9. Issue Identifier */}
-        <div className={styles.formField}>
-          <label>Issue Identifier</label>
-          <input
-            type="text"
-            value={form.issueIdentifier}
-            onChange={(e) => updateField("issueIdentifier", e.target.value)}
-            onBlur={() => markTouched("issueIdentifier")}
-          />
-          {errors.issueIdentifier && <span className={styles.fieldError}>{errors.issueIdentifier}</span>}
-        </div>
+            <TextField
+              label="Issue Identifier"
+              value={form.issueIdentifier}
+              onChange={(_, v) => updateField("issueIdentifier", v ?? "")}
+              onBlur={() => markTouched("issueIdentifier")}
+              errorMessage={errors.issueIdentifier}
+            />
 
-        {/* 10. Tower Mail ID */}
-        <div className={styles.formField}>
-          <label>Tower Mail ID</label>
-          <input type="email" value={form.towerMailId} readOnly disabled />
-        </div>
+            <TextField
+              label="Tower Mail ID"
+              value={form.towerMailId}
+              readOnly
+              disabled
+            />
 
-        {/* 11. Mitigation Plan */}
-        <div className={styles.formField}>
-          <label>Mitigation Plan</label>
-          <textarea
-            value={form.mitigationPlan}
-            onChange={(e) => updateField("mitigationPlan", e.target.value)}
-            onBlur={() => markTouched("mitigationPlan")}
-          />
-          {errors.mitigationPlan && <span className={styles.fieldError}>{errors.mitigationPlan}</span>}
-        </div>
+            <TextField
+              label="Mitigation Plan"
+              multiline
+              rows={3}
+              value={form.mitigationPlan}
+              onChange={(_, v) => updateField("mitigationPlan", v ?? "")}
+              onBlur={() => markTouched("mitigationPlan")}
+              errorMessage={errors.mitigationPlan}
+            />
 
-        {/* 12. Residual Issue Rating */}
-        {renderScaleField(
-          "residualIssueRating",
-          "Residual Issue Rating",
-          "Risk remaining after controls/mitigation are applied. 0 = none, 5 = very high",
-          RESIDUAL_SCALE_OPTIONS,
-        )}
+            {renderScaleField(
+              "residualIssueRating",
+              "Residual Issue Rating",
+              "Risk remaining after controls/mitigation. 0 = none, 5 = very high",
+              RESIDUAL_SCALE_OPTIONS,
+            )}
 
-        {/* 13. Target Date */}
-        <div className={styles.formField}>
-          <label>Target Date</label>
-          <input
-            type="date"
-            value={form.targetDate}
-            min={todayIso}
-            onChange={(e) => updateField("targetDate", e.target.value)}
-            onBlur={() => markTouched("targetDate")}
-          />
-          {errors.targetDate && <span className={styles.fieldError}>{errors.targetDate}</span>}
-        </div>
+            <DatePicker
+              label="Target Date"
+              firstDayOfWeek={DayOfWeek.Monday}
+              value={isoToDate(form.targetDate)}
+              minDate={isoToDate(todayIso)}
+              onSelectDate={(date) => {
+                updateField("targetDate", dateToIso(date ?? undefined));
+                markTouched("targetDate");
+              }}
+              formatDate={(date) => (date ? dateToIso(date) : "")}
+            />
+            {errors.targetDate && (
+              <Text
+                variant="small"
+                styles={{ root: { color: "#a4262c", marginTop: -12 } }}
+              >
+                {errors.targetDate}
+              </Text>
+            )}
 
-        {/* 14. Remarks — optional */}
-        <div className={styles.formField}>
-          <label>Remarks (optional)</label>
-          <textarea
-            value={form.remarks}
-            onChange={(e) => updateField("remarks", e.target.value)}
-            onBlur={() => markTouched("remarks")}
-          />
-        </div>
+            <TextField
+              label="Remarks (optional)"
+              multiline
+              rows={2}
+              value={form.remarks}
+              onChange={(_, v) => updateField("remarks", v ?? "")}
+            />
 
-        {submitError && <p className={styles.fieldError}>{submitError}</p>}
-        <button onClick={handleSubmit} disabled={submitting}>
-          {submitting ? "Submitting…" : "Submit Issue"}
-        </button>
-      </fieldset>
-    )}
-  </div>
-);
+            {submitError && (
+              <MessageBar messageBarType={MessageBarType.error}>
+                {submitError}
+              </MessageBar>
+            )}
+
+            <PrimaryButton
+              onClick={handleSubmit}
+              disabled={submitting}
+              styles={{ root: { width: 180, height: 40 } }}
+            >
+              {submitting ? "Submitting…" : "Submit Issue"}
+            </PrimaryButton>
+          </Stack>
+        </fieldset>
+      )}
+    </Stack>
+  );
 };

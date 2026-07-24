@@ -1,44 +1,47 @@
-import * as React from 'react';
-import styles from './IssueRegister.module.scss';
-import type { IIssueRegisterProps } from './IIssueRegisterProps';
+import * as React from "react";
+import { ThemeProvider } from "@fluentui/react/lib/Theme";
+import { initializeIcons } from "@fluentui/react/lib/Icons";
+import styles from "./IssueRegister.module.scss";
+import type { IIssueRegisterProps } from "./IIssueRegisterProps";
+import { RegisterIssueScreen } from "./RegisterIssueScreen";
+import { HomeScreen } from "./HomeScreen";
+import { appTheme } from "./theme";
 
-type ScreenName = 'home' | 'submit' | 'dashboard' | 'table';
+initializeIcons();
 
-const IssueRegister: React.FC<IIssueRegisterProps> = () => {
-  const [currentScreen, setCurrentScreen] = React.useState<ScreenName>('home');
+type ScreenName = "home" | "submit" | "dashboard" | "table";
+
+const IssueRegister: React.FC<IIssueRegisterProps> = ({ userEmail, issueService }) => {
+  const [currentScreen, setCurrentScreen] = React.useState<ScreenName>("home");
 
   return (
-    <section className={styles.issueRegister}>
-      {currentScreen === 'home' && (
-        <div className={styles.homeScreen}>
-          <h1>IT Infra Issue Register</h1>
-          <button onClick={() => setCurrentScreen('submit')}>Register Issue</button>
-          <button onClick={() => setCurrentScreen('dashboard')}>Dashboard</button>
-          <button onClick={() => setCurrentScreen('table')}>Issue Table</button>
-        </div>
+    <ThemeProvider theme={appTheme} className={styles.issueRegister}>
+      {currentScreen === "home" && (
+        <HomeScreen onNavigate={(screen) => setCurrentScreen(screen)} />
       )}
 
-      {currentScreen === 'submit' && (
-        <div className={styles.screenPlaceholder}>
-          <button onClick={() => setCurrentScreen('home')}>← Home</button>
-          <h2>Register Issue (screen not built yet)</h2>
-        </div>
+      {currentScreen === "submit" && (
+        <RegisterIssueScreen
+          onBack={() => setCurrentScreen("home")}
+          currentUserEmail={userEmail}
+          issueService={issueService}
+        />
       )}
 
-      {currentScreen === 'dashboard' && (
+      {currentScreen === "dashboard" && (
         <div className={styles.screenPlaceholder}>
-          <button onClick={() => setCurrentScreen('home')}>← Home</button>
+          <button onClick={() => setCurrentScreen("home")}>← Home</button>
           <h2>Dashboard (screen not built yet)</h2>
         </div>
       )}
 
-      {currentScreen === 'table' && (
+      {currentScreen === "table" && (
         <div className={styles.screenPlaceholder}>
-          <button onClick={() => setCurrentScreen('home')}>← Home</button>
+          <button onClick={() => setCurrentScreen("home")}>← Home</button>
           <h2>Issue Table (screen not built yet)</h2>
         </div>
       )}
-    </section>
+    </ThemeProvider>
   );
 };
 

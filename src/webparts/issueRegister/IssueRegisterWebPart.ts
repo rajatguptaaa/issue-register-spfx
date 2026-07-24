@@ -11,6 +11,7 @@ import { IReadonlyTheme } from '@microsoft/sp-component-base';
 import * as strings from 'IssueRegisterWebPartStrings';
 import IssueRegister from './components/IssueRegister';
 import { IIssueRegisterProps } from './components/IIssueRegisterProps';
+import { IssueService } from './services/IssueService';
 
 export interface IIssueRegisterWebPartProps {
   description: string;
@@ -20,7 +21,7 @@ export default class IssueRegisterWebPart extends BaseClientSideWebPart<IIssueRe
 
   private _isDarkTheme: boolean = false;
   private _environmentMessage: string = '';
-
+  private _issueService: IssueService | undefined;
   public render(): void {
     const element: React.ReactElement<IIssueRegisterProps> = React.createElement(
       IssueRegister,
@@ -28,7 +29,9 @@ export default class IssueRegisterWebPart extends BaseClientSideWebPart<IIssueRe
         description: this.properties.description,
         isDarkTheme: this._isDarkTheme,
         environmentMessage: this._environmentMessage,
-        userDisplayName: this.context.pageContext.user.displayName
+        userDisplayName: this.context.pageContext.user.displayName,
+        userEmail: this.context.pageContext.user.email,
+        issueService: this._issueService as IssueService,
       }
     );
 
@@ -36,6 +39,7 @@ export default class IssueRegisterWebPart extends BaseClientSideWebPart<IIssueRe
   }
 
   protected onInit(): Promise<void> {
+    this._issueService = new IssueService(this.context);
     return this._getEnvironmentMessage().then(message => {
       this._environmentMessage = message;
     });

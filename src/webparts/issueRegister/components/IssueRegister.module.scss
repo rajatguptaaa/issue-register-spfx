@@ -2,7 +2,37 @@
   overflow: hidden;
   padding: 1em;
 }
-
+.helpText {
+  font-size: 12px;
+  color: #666;
+  margin: 2px 0 0;
+}
+.formFieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+.successBox {
+  padding: 20px;
+  background: #f0f9fc;
+  border: 1px solid #3b6d11;
+  border-radius: 6px;
+  margin-top: 16px;
+}
+.scoreDisplay {
+  padding: 10px 12px;
+  background: #f0f9fc;
+  border: 1px solid #e1dfdd;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 18px;
+  color: #134074;
+}
+.fieldError {
+  color: #a32d2d;
+  font-size: 12px;
+  margin-top: 4px;
+}
 .homeScreen {
   display: flex;
   flex-direction: column;
@@ -22,7 +52,30 @@
     cursor: pointer;
   }
 }
+.formField {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
 
+  label {
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  input,
+  select,
+  textarea {
+    padding: 8px;
+    border: 1px solid #e1dfdd;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  textarea {
+    min-height: 70px;
+  }
+}
 .screenPlaceholder {
   padding: 24px;
 }
@@ -40,12 +93,16 @@
   a {
     text-decoration: none;
     color: "[theme:link, default:#03787c]";
-    color: var(--link); // note: CSS Custom Properties support is limited to modern browsers only
+    color: var(
+      --link
+    ); // note: CSS Custom Properties support is limited to modern browsers only
 
     &:hover {
       text-decoration: underline;
       color: "[theme:linkHovered, default: #014446]";
-      color: var(--linkHovered); // note: CSS Custom Properties support is limited to modern browsers only
+      color: var(
+        --linkHovered
+      ); // note: CSS Custom Properties support is limited to modern browsers only
     }
   }
 }

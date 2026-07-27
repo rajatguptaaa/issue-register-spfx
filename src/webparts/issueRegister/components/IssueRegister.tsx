@@ -8,6 +8,7 @@ import { RegisterIssueScreen } from "./RegisterIssueScreen";
 import { HomeScreen } from "./HomeScreen";
 import { AppHeader } from "./AppHeader";
 import { appTheme } from "./theme";
+import { DashboardScreen } from "./DashboardScreen";
 
 initializeIcons();
 
@@ -20,14 +21,19 @@ const SCREEN_TITLES: Record<ScreenName, string> = {
   table: "Issue Table",
 };
 
-const IssueRegister: React.FC<IIssueRegisterProps> = ({ userEmail, issueService }) => {
+const IssueRegister: React.FC<IIssueRegisterProps> = ({
+  userEmail,
+  issueService,
+}) => {
   const [currentScreen, setCurrentScreen] = React.useState<ScreenName>("home");
 
   return (
     <ThemeProvider theme={appTheme} className={styles.issueRegister}>
       <AppHeader
         title={SCREEN_TITLES[currentScreen]}
-        onBack={currentScreen === "home" ? undefined : () => setCurrentScreen("home")}
+        onBack={
+          currentScreen === "home" ? undefined : () => setCurrentScreen("home")
+        }
         userEmail={userEmail}
       />
       <Stack
@@ -51,9 +57,10 @@ const IssueRegister: React.FC<IIssueRegisterProps> = ({ userEmail, issueService 
         )}
 
         {currentScreen === "dashboard" && (
-          <div className={styles.screenPlaceholder}>
-            <h2>Dashboard (screen not built yet)</h2>
-          </div>
+          <DashboardScreen
+            issueService={issueService}
+            onNavigateToTable={() => setCurrentScreen("table")}
+          />
         )}
 
         {currentScreen === "table" && (

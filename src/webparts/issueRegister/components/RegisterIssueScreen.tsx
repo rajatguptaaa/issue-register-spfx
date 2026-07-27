@@ -372,7 +372,7 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
                 }}
               >
                 {issueScore === null
-                  ? "Complete Tv, L, Av, Vv above to calculate"
+                  ? "Select Tv, L, Av, Vv above to calculate"
                   : issueScore}
               </Text>
             </Stack>

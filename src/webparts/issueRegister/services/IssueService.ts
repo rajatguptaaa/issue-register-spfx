@@ -8,13 +8,6 @@ import { IIssueItem, INewIssueInput, IRecipient } from "../models/IIssueItem";
 const ISSUE_LIST = "Issue Register List";
 const RECIPIENTS_LIST = "IssueNotificationRecipients";
 
-/**
- * Converts SharePoint's raw REST payload into the flat IIssueItem shape.
- * "Issue Domain" and "Status" are Choice columns -> SharePoint returns
- * them as { Value: "..." } objects, so those two need unwrapping.
- * Every other column has no spaces in its internal name, so it comes
- * back as a plain value already.
- */
 function toIssueItem(spItem: Record<string, unknown>): IIssueItem {
   return {
     ID: spItem.Id as number,
@@ -58,6 +51,21 @@ export class IssueService {
     return items.map(toIssueItem);
   }
 
+  public async getIssueScoresAndStatuses(): Promise<
+    Pick<IIssueItem, "IssueScore" | "Status">[]
+  > {
+    const items = await this.sp.web.lists
+      .getByTitle(ISSUE_LIST)
+      .items.select("IssueScore", "Status")
+      .top(5000)();
+
+    return items.map((i: Record<string, unknown>) => ({
+      IssueScore: (i.IssueScore as number) ?? 0,
+      Status: ((i.Status as { Value: string })?.Value ??
+        "Open") as IIssueItem["Status"],
+    }));
+  }
+
   public async getIssueById(id: number): Promise<IIssueItem> {
     const item = await this.sp.web.lists
       .getByTitle(ISSUE_LIST)
@@ -65,13 +73,6 @@ export class IssueService {
     return toIssueItem(item);
   }
 
-  /**
-   * Creates a new issue. IssueScore is calculated here (Tv x L x Av x Vv)
-   * rather than trusting a value from the form, so the score is always
-   * correct even if the UI had a bug. IssueID generation and the "new
-   * issue" email stay in Power Automate — this call only creates the
-   * base item.
-   */
   public async createIssue(input: INewIssueInput): Promise<number> {
     const issueScore =
       input.ThreatValue *

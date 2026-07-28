@@ -11,47 +11,13 @@ import { Icon } from "@fluentui/react/lib/Icon";
 import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import styles from "./IssueRegister.module.scss";
+import { IssueDomain } from "../models/IIssueItem";
 
 export interface IRegisterIssueScreenProps {
   onBack: () => void;
   currentUserEmail: string;
   issueService: IssueService;
 }
-
-export type IssueDomain =
-  | "IT Security"
-  | "Infrastructure"
-  | "Operations"
-  | "Compliance"
-  | "Data Management"
-  | "Network"
-  | "Application"
-  | "Vendor/Third Party"
-  | "Business Continuity"
-  | "Storage"
-  | "Backup & Recovery"
-  | "Cloud"
-  | "Security"
-  | "Server"
-  | "Other";
-
-const DOMAIN_OPTIONS: IDropdownOption[] = [
-  "IT Security",
-  "Infrastructure",
-  "Operations",
-  "Compliance",
-  "Data Management",
-  "Network",
-  "Application",
-  "Vendor/Third Party",
-  "Business Continuity",
-  "Storage",
-  "Backup & Recovery",
-  "Cloud",
-  "Security",
-  "Server",
-  "Other",
-].map((d) => ({ key: d, text: d }));
 
 const SCALE_OPTIONS: IDropdownOption[] = [1, 2, 3, 4, 5].map((n) => ({
   key: n,
@@ -111,9 +77,6 @@ function validateField(
   return "";
 }
 
-// Converts our internal "YYYY-MM-DD" string <-> a real Date object,
-// since DatePicker works with Date, but SharePoint/PnP.js and our own
-// form state work with ISO date strings.
 function isoToDate(iso: string): Date | undefined {
   return iso ? new Date(`${iso}T00:00:00`) : undefined;
 }
@@ -137,12 +100,24 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
     ...EMPTY_FORM,
     towerMailId: currentUserEmail,
   }));
-  const [touched, setTouched] = React.useState<
-    Partial<Record<FieldName, boolean>>
-  >({});
+  const [touched, setTouched] = React.useState<Partial<Record<FieldName, boolean>>>({});
   const [submitting, setSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submittedId, setSubmittedId] = React.useState<number | null>(null);
+
+  const [domainOptions, setDomainOptions] = React.useState<IDropdownOption[] | null>(null);
+  const [domainLoadError, setDomainLoadError] = React.useState<string | null>(null);
+
+  // Fetches the live list of Issue Domain choices directly from
+  // SharePoint's Choice column — runs once when this screen mounts.
+  React.useEffect(() => {
+    issueService
+      .getIssueDomainChoices()
+      .then((choices) => setDomainOptions(choices.map((c) => ({ key: c, text: c }))))
+      .catch((err: unknown) =>
+        setDomainLoadError(err instanceof Error ? err.message : "Failed to load domain list."),
+      );
+  }, [issueService]);
 
   const todayIso = React.useMemo(() => {
     const now = new Date();
@@ -305,8 +280,9 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
           >
             <Dropdown
               label="Issue Domain"
-              placeholder="-- Select --"
-              options={DOMAIN_OPTIONS}
+              placeholder={domainOptions ? "-- Select --" : "Loading domains…"}
+              options={domainOptions ?? []}
+              disabled={!domainOptions}
               selectedKey={form.issueDomain || undefined}
               onChange={(_, option) =>
                 updateField(
@@ -315,7 +291,7 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
                 )
               }
               onBlur={() => markTouched("issueDomain")}
-              errorMessage={errors.issueDomain}
+              errorMessage={errors.issueDomain || domainLoadError || undefined}
             />
 
             <TextField

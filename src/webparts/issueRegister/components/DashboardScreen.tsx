@@ -14,10 +14,7 @@ import { IIssueItem } from "../models/IIssueItem";
 
 export interface IDashboardScreenProps {
   issueService: IssueService;
-  // TODO: once Issue Table exists, extend this to accept a status/level
-  // filter so clicking a matrix cell opens Table pre-filtered instead of
-  // just navigating there blank.
-  onNavigateToTable: () => void;
+  onNavigateToAllIssues: (status: "Open" | "Closed", level: IssueLevel | "All") => void;
 }
 
 type IssueLevel = "Critical" | "High" | "Medium" | "Low";
@@ -51,10 +48,7 @@ const LEVEL_ROW_TINTS: Record<IssueLevel, string> = {
 
 const LEVELS: IssueLevel[] = ["Critical", "High", "Medium", "Low"];
 
-export const DashboardScreen: React.FC<IDashboardScreenProps> = ({
-  issueService,
-  onNavigateToTable,
-}) => {
+export const DashboardScreen: React.FC<IDashboardScreenProps> = ({ issueService, onNavigateToAllIssues }) => {
   const theme = useTheme();
   const [issues, setIssues] = React.useState<IssueScoreStatus[] | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -200,7 +194,7 @@ export const DashboardScreen: React.FC<IDashboardScreenProps> = ({
                   verticalAlign="center"
                 >
                   <DefaultButton
-                    onClick={onNavigateToTable}
+                    onClick={() => onNavigateToAllIssues("Open", level)}
                     styles={{
                       root: {
                         minWidth: 120,
@@ -226,7 +220,7 @@ export const DashboardScreen: React.FC<IDashboardScreenProps> = ({
                   verticalAlign="center"
                 >
                   <DefaultButton
-                    onClick={onNavigateToTable}
+                    onClick={() => onNavigateToAllIssues("Closed", level)}
                     styles={{
                       root: {
                         minWidth: 120,
@@ -259,10 +253,10 @@ export const DashboardScreen: React.FC<IDashboardScreenProps> = ({
           </Text>
 
           <Stack horizontal tokens={{ childrenGap: 12 }}>
-            <PrimaryButton onClick={onNavigateToTable}>
+            <PrimaryButton onClick={() => onNavigateToAllIssues("Open", "All")}>
               Open Issues →
             </PrimaryButton>
-            <DefaultButton onClick={onNavigateToTable}>
+            <DefaultButton onClick={() => onNavigateToAllIssues("Closed", "All")}>
               Closed Issues →
             </DefaultButton>
           </Stack>

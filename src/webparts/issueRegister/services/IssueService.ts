@@ -4,6 +4,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { WebPartContext } from "@microsoft/sp-webpart-base";
 import { IIssueItem, INewIssueInput, IRecipient } from "../models/IIssueItem";
+import "@pnp/sp/fields";
 
 const ISSUE_LIST = "Issue Register List";
 const RECIPIENTS_LIST = "IssueNotificationRecipients";
@@ -12,8 +13,7 @@ function toIssueItem(spItem: Record<string, unknown>): IIssueItem {
   return {
     ID: spItem.Id as number,
     IssueID: (spItem.IssueID as string) ?? "",
-    IssueDomain: (spItem.IssueDomain as { Value: string })
-      ?.Value as IIssueItem["IssueDomain"],
+    IssueDomain: spItem.IssueDomain as IIssueItem["IssueDomain"],
     IssueDescription: (spItem.IssueDescription as string) ?? "",
     ThreatValue: (spItem.ThreatValue as number) ?? 0,
     LikelihoodRating: (spItem.LikelihoodRating as number) ?? 0,
@@ -27,8 +27,7 @@ function toIssueItem(spItem: Record<string, unknown>): IIssueItem {
     ResidualIssueRating: (spItem.ResidualIssueRating as number) ?? 0,
     TargetDate: spItem.TargetDate as string,
     Remarks: (spItem.Remarks as string) ?? "",
-    Status: ((spItem.Status as { Value: string })?.Value ??
-      "Open") as IIssueItem["Status"],
+    Status: (spItem.Status as IIssueItem["Status"]) ?? "Open",
     SubmittedBy: (spItem.SubmittedBy as string) ?? "",
     SubmittedOn: spItem.Created as string,
     ClosedDate: (spItem.ClosedDate as string) ?? null,
@@ -65,7 +64,45 @@ export class IssueService {
         "Open") as IIssueItem["Status"],
     }));
   }
+  public async addMeetingNote(
+    id: number,
+    newNote: string,
+    displayName: string,
+  ): Promise<void> {
+    const current = await this.sp.web.lists
+      .getByTitle(ISSUE_LIST)
+      .items.getById(id)
+      .select("MeetingNotes")();
 
+    const existingNotes = (current.MeetingNotes as string) ?? "";
+    const dateStr = new Date().toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    const combined = `[${dateStr} — ${displayName}]: ${newNote}\n\n${existingNotes}`;
+
+    await this.sp.web.lists
+      .getByTitle(ISSUE_LIST)
+      .items.getById(id)
+      .update({ MeetingNotes: combined });
+  }
+
+  public async closeIssue(id: number, closedByEmail: string): Promise<void> {
+    await this.sp.web.lists.getByTitle(ISSUE_LIST).items.getById(id).update({
+      Status: "Closed",
+      ClosedDate: new Date().toISOString(),
+      ClosedBy: closedByEmail,
+    });
+  }
+
+  public async getIssueDomainChoices(): Promise<string[]> {
+    const field = await this.sp.web.lists
+      .getByTitle(ISSUE_LIST)
+      .fields.getByInternalNameOrTitle("IssueDomain")
+      .select("Choices")();
+    return (field as { Choices: string[] }).Choices ?? [];
+  }
   public async getIssueById(id: number): Promise<IIssueItem> {
     const item = await this.sp.web.lists
       .getByTitle(ISSUE_LIST)
@@ -96,8 +133,39 @@ export class IssueService {
       TargetDate: input.TargetDate,
       Remarks: input.Remarks,
       Status: "Open",
+      SubmittedBy: input.TowerMailID,
     });
     return result.Id;
+  }
+
+  public async updateIssueDetails(
+    id: number,
+    fields: {
+      ThreatValue: number;
+      LikelihoodRating: number;
+      AssetValue: number;
+      VulnerabilityValue: number;
+      TargetDate: string;
+      MitigationPlan: string;
+      Remarks: string;
+    },
+  ): Promise<void> {
+    const issueScore =
+      fields.ThreatValue *
+      fields.LikelihoodRating *
+      fields.AssetValue *
+      fields.VulnerabilityValue;
+
+    await this.sp.web.lists.getByTitle(ISSUE_LIST).items.getById(id).update({
+      ThreatValue: fields.ThreatValue,
+      LikelihoodRating: fields.LikelihoodRating,
+      AssetValue: fields.AssetValue,
+      VulnerabilityValue: fields.VulnerabilityValue,
+      IssueScore: issueScore,
+      TargetDate: fields.TargetDate,
+      MitigationPlan: fields.MitigationPlan,
+      Remarks: fields.Remarks,
+    });
   }
 
   public async getActiveRecipients(): Promise<IRecipient[]> {

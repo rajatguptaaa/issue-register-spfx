@@ -60,8 +60,7 @@ export class IssueService {
 
     return items.map((i: Record<string, unknown>) => ({
       IssueScore: (i.IssueScore as number) ?? 0,
-      Status: ((i.Status as { Value: string })?.Value ??
-        "Open") as IIssueItem["Status"],
+      Status: (i.Status as IIssueItem["Status"]) ?? "Open",
     }));
   }
   public async addMeetingNote(

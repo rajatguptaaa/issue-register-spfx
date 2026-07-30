@@ -1,7 +1,6 @@
 import * as React from "react";
 import { ThemeProvider } from "@fluentui/react/lib/Theme";
 import { Stack } from "@fluentui/react/lib/Stack";
-import { Text } from "@fluentui/react/lib/Text";
 import { initializeIcons } from "@fluentui/react/lib/Icons";
 import styles from "./IssueRegister.module.scss";
 import type { IIssueRegisterProps } from "./IIssueRegisterProps";
@@ -12,7 +11,7 @@ import { AllIssuesScreen, IssueLevel } from "./AllIssuesScreen";
 import { AppHeader } from "./AppHeader";
 import { appTheme } from "./theme";
 import { IssueDetailScreen } from "./IssueDetailScreen";
-
+import { IssueTableScreen } from "./IssueTableScreen";
 
 initializeIcons();
 
@@ -46,19 +45,20 @@ const IssueRegister: React.FC<IIssueRegisterProps> = ({
     status: "Open",
     level: "All",
   });
-  const [selectedIssueId, setSelectedIssueId] = React.useState<number | null>(
-    null,
+  const [selectedIssueId, setSelectedIssueId] = React.useState<
+    number | undefined
+  >(undefined);
+  const [detailOrigin, setDetailOrigin] = React.useState<"allIssues" | "table">(
+    "allIssues",
   );
   const [blockNavigation, setBlockNavigation] = React.useState(false);
-  // Where "back" goes depends on which screen is currently showing —
-  // e.g. All Issues came from Dashboard, so back should return there,
-  // not to Home.
+
   const backTargets: Partial<Record<ScreenName, ScreenName>> = {
     submit: "home",
     dashboard: "home",
     allIssues: "dashboard",
     table: "home",
-    detail: "allIssues", // TODO: once Issue Table exists, track real origin (allIssues vs table)
+    detail: detailOrigin,
   };
 
   return (
@@ -77,6 +77,8 @@ const IssueRegister: React.FC<IIssueRegisterProps> = ({
           root: {
             background: "linear-gradient(180deg, #eaf1f7 0%, #ffffff 100%)",
             minHeight: 480,
+            width: "100%",
+            overflowX: "hidden",
           },
         }}
       >
@@ -108,18 +110,24 @@ const IssueRegister: React.FC<IIssueRegisterProps> = ({
             initialFilter={allIssuesFilter}
             onViewIssue={(id) => {
               setSelectedIssueId(id);
+              setDetailOrigin("allIssues");
               setCurrentScreen("detail");
             }}
           />
         )}
 
         {currentScreen === "table" && (
-          <div className={styles.screenPlaceholder}>
-            <h2>Issue Table (screen not built yet)</h2>
-          </div>
+          <IssueTableScreen
+            issueService={issueService}
+            onViewIssue={(id) => {
+              setSelectedIssueId(id);
+              setDetailOrigin("table");
+              setCurrentScreen("detail");
+            }}
+          />
         )}
 
-        {currentScreen === "detail" && selectedIssueId !== null && (
+        {currentScreen === "detail" && selectedIssueId !== undefined && (
           <IssueDetailScreen
             issueId={selectedIssueId}
             issueService={issueService}

@@ -1,4 +1,10 @@
-import { getIssueLevel, calculateIssueScore, canCloseIssue, isTargetDateValid } from "./issueLogic";
+import {
+  getIssueLevel,
+  calculateIssueScore,
+  canCloseIssue,
+  isTargetDateValid,
+  isOverdue,
+} from "./issueLogic";
 
 describe("getIssueLevel", () => {
   it("classifies scores at the documented thresholds", () => {
@@ -54,5 +60,18 @@ describe("isTargetDateValid", () => {
 
   it("rejects past dates", () => {
     expect(isTargetDateValid("2026-07-31", "2026-08-01")).toBe(false);
+  });
+});
+describe("isOverdue", () => {
+  it("is never overdue once closed, regardless of date", () => {
+    expect(isOverdue("2020-01-01", "Closed")).toBe(false);
+  });
+
+  it("flags a past target date while still open", () => {
+    expect(isOverdue("2020-01-01", "Open")).toBe(true);
+  });
+
+  it("does not flag a future target date", () => {
+    expect(isOverdue("2099-01-01", "Open")).toBe(false);
   });
 });

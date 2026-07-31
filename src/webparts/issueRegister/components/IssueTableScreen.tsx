@@ -12,13 +12,13 @@ import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import { IIssueItem, IssueStatus } from "../models/IIssueItem";
 import styles from "./IssueRegister.module.scss";
+import { IssueLevel, getIssueLevel } from "../utils/issueLogic";
 
 export interface IIssueTableScreenProps {
   issueService: IssueService;
   onViewIssue: (id: number) => void;
 }
 
-type IssueLevel = "Critical" | "High" | "Medium" | "Low";
 type DateColumn = "targetDate" | "createdDate";
 
 enum DayOfWeek {
@@ -29,13 +29,6 @@ enum DayOfWeek {
   Thursday = 4,
   Friday = 5,
   Saturday = 6,
-}
-
-function getIssueLevel(score: number): IssueLevel {
-  if (score >= 400) return "Critical";
-  if (score >= 256) return "High";
-  if (score >= 81) return "Medium";
-  return "Low";
 }
 
 // Pill-badge colors — a darker text tone paired with a light tint of the

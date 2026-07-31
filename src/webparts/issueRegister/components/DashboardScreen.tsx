@@ -17,15 +17,10 @@ export interface IDashboardScreenProps {
   onNavigateToAllIssues: (status: "Open" | "Closed", level: IssueLevel | "All") => void;
 }
 
-type IssueLevel = "Critical" | "High" | "Medium" | "Low";
+import { IssueLevel, getIssueLevel } from "../utils/issueLogic";
 type IssueScoreStatus = Pick<IIssueItem, "IssueScore" | "Status">;
 
-function getIssueLevel(score: number): IssueLevel {
-  if (score >= 400) return "Critical";
-  if (score >= 256) return "High";
-  if (score >= 81) return "Medium";
-  return "Low";
-}
+
 
 interface ILevelCounts {
   open: number;

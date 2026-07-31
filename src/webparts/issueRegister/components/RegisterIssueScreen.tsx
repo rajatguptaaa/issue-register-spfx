@@ -12,6 +12,7 @@ import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import styles from "./IssueRegister.module.scss";
 import { IssueDomain } from "../models/IIssueItem";
+import { calculateIssueScore,isTargetDateValid  } from "../utils/issueLogic";
 
 export interface IRegisterIssueScreenProps {
   onBack: () => void;
@@ -72,8 +73,9 @@ function validateField(
   if (!value.trim()) return "This field is required.";
   if (field === "towerMailId" && !EMAIL_REGEX.test(value))
     return "Enter a valid email address.";
-  if (field === "targetDate" && value < todayIso)
+  if (field === "targetDate" && !isTargetDateValid(value, todayIso)) {
     return "Target date must be today or a future date.";
+  }
   return "";
 }
 
@@ -100,22 +102,32 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
     ...EMPTY_FORM,
     towerMailId: currentUserEmail,
   }));
-  const [touched, setTouched] = React.useState<Partial<Record<FieldName, boolean>>>({});
+  const [touched, setTouched] = React.useState<
+    Partial<Record<FieldName, boolean>>
+  >({});
   const [submitting, setSubmitting] = React.useState(false);
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [submittedId, setSubmittedId] = React.useState<number | null>(null);
 
-  const [domainOptions, setDomainOptions] = React.useState<IDropdownOption[] | null>(null);
-  const [domainLoadError, setDomainLoadError] = React.useState<string | null>(null);
+  const [domainOptions, setDomainOptions] = React.useState<
+    IDropdownOption[] | null
+  >(null);
+  const [domainLoadError, setDomainLoadError] = React.useState<string | null>(
+    null,
+  );
 
   // Fetches the live list of Issue Domain choices directly from
   // SharePoint's Choice column — runs once when this screen mounts.
   React.useEffect(() => {
     issueService
       .getIssueDomainChoices()
-      .then((choices) => setDomainOptions(choices.map((c) => ({ key: c, text: c }))))
+      .then((choices) =>
+        setDomainOptions(choices.map((c) => ({ key: c, text: c }))),
+      )
       .catch((err: unknown) =>
-        setDomainLoadError(err instanceof Error ? err.message : "Failed to load domain list."),
+        setDomainLoadError(
+          err instanceof Error ? err.message : "Failed to load domain list.",
+        ),
       );
   }, [issueService]);
 
@@ -201,11 +213,11 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
       form;
     if (!threatValue || !likelihoodRating || !assetValue || !vulnerabilityValue)
       return null;
-    return (
-      Number(threatValue) *
-      Number(likelihoodRating) *
-      Number(assetValue) *
-      Number(vulnerabilityValue)
+    return calculateIssueScore(
+      Number(threatValue),
+      Number(likelihoodRating),
+      Number(assetValue),
+      Number(vulnerabilityValue),
     );
   }, [
     form.threatValue,

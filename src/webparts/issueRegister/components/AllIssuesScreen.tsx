@@ -9,8 +9,8 @@ import { MessageBar, MessageBarType } from "@fluentui/react/lib/MessageBar";
 import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import { IIssueItem, IssueStatus } from "../models/IIssueItem";
+import { IssueLevel, getIssueLevel, isOverdue } from "../utils/issueLogic";
 
-export type IssueLevel = "Critical" | "High" | "Medium" | "Low";
 
 export interface IAllIssuesInitialFilter {
   status: IssueStatus;
@@ -21,20 +21,6 @@ export interface IAllIssuesScreenProps {
   issueService: IssueService;
   initialFilter: IAllIssuesInitialFilter;
   onViewIssue: (id: number) => void;
-}
-
-function getIssueLevel(score: number): IssueLevel {
-  if (score >= 400) return "Critical";
-  if (score >= 256) return "High";
-  if (score >= 81) return "Medium";
-  return "Low";
-}
-
-function isOverdue(targetDate: string, status: IssueStatus): boolean {
-  if (status === "Closed") return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return new Date(targetDate) < today;
 }
 
 const LEVEL_COLORS: Record<IssueLevel, string> = {

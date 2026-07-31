@@ -12,6 +12,7 @@ import { MessageBar, MessageBarType } from "@fluentui/react/lib/MessageBar";
 import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import { IIssueItem } from "../models/IIssueItem";
+import { IssueLevel, getIssueLevel, canCloseIssue } from "../utils/issueLogic";
 
 export interface IIssueDetailScreenProps {
   issueId: number;
@@ -19,15 +20,6 @@ export interface IIssueDetailScreenProps {
   currentUserEmail: string;
   currentUserDisplayName: string;
   onBusyChange?: (busy: boolean) => void;
-}
-
-type IssueLevel = "Critical" | "High" | "Medium" | "Low";
-
-function getIssueLevel(score: number): IssueLevel {
-  if (score >= 400) return "Critical";
-  if (score >= 256) return "High";
-  if (score >= 81) return "Medium";
-  return "Low";
 }
 
 const LEVEL_COLORS: Record<IssueLevel, string> = {
@@ -56,13 +48,6 @@ function dateToIso(date: Date | undefined): string {
   const m = monthValue < 10 ? `0${monthValue}` : `${monthValue}`;
   const d = dayValue < 10 ? `0${dayValue}` : `${dayValue}`;
   return `${y}-${m}-${d}`;
-}
-
-// Only the issue's owner (TowerMailID) may close it — case-insensitive
-// email compare, since email casing is not meaningful in practice.
-function canCloseIssue(currentUserEmail: string, towerMailId: string): boolean {
-  if (!currentUserEmail || !towerMailId) return false;
-  return currentUserEmail.trim().toLowerCase() === towerMailId.trim().toLowerCase();
 }
 
 const ReadOnlyField: React.FC<{ label: string; value: string }> = ({ label, value }) => (

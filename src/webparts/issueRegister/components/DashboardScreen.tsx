@@ -14,13 +14,14 @@ import { IIssueItem } from "../models/IIssueItem";
 
 export interface IDashboardScreenProps {
   issueService: IssueService;
-  onNavigateToAllIssues: (status: "Open" | "Closed", level: IssueLevel | "All") => void;
+  onNavigateToAllIssues: (
+    status: "Open" | "Closed",
+    level: IssueLevel | "All",
+  ) => void;
 }
 
 import { IssueLevel, getIssueLevel } from "../utils/issueLogic";
 type IssueScoreStatus = Pick<IIssueItem, "IssueScore" | "Status">;
-
-
 
 interface ILevelCounts {
   open: number;
@@ -43,7 +44,10 @@ const LEVEL_ROW_TINTS: Record<IssueLevel, string> = {
 
 const LEVELS: IssueLevel[] = ["Critical", "High", "Medium", "Low"];
 
-export const DashboardScreen: React.FC<IDashboardScreenProps> = ({ issueService, onNavigateToAllIssues }) => {
+export const DashboardScreen: React.FC<IDashboardScreenProps> = ({
+  issueService,
+  onNavigateToAllIssues,
+}) => {
   const theme = useTheme();
   const [issues, setIssues] = React.useState<IssueScoreStatus[] | null>(null);
   const [loadError, setLoadError] = React.useState<string | null>(null);
@@ -83,8 +87,8 @@ export const DashboardScreen: React.FC<IDashboardScreenProps> = ({ issueService,
 
   return (
     <Stack
-      tokens={{ padding: 24, childrenGap: 16 }}
-      styles={{ root: { maxWidth: 720 } }}
+      tokens={{ padding: 24, childrenGap: 18 }}
+      styles={{ root: { maxWidth: 760, margin: "0 auto" } }}
     >
       <Stack horizontal horizontalAlign="space-between" verticalAlign="start">
         <Stack>
@@ -251,7 +255,9 @@ export const DashboardScreen: React.FC<IDashboardScreenProps> = ({ issueService,
             <PrimaryButton onClick={() => onNavigateToAllIssues("Open", "All")}>
               Open Issues →
             </PrimaryButton>
-            <DefaultButton onClick={() => onNavigateToAllIssues("Closed", "All")}>
+            <DefaultButton
+              onClick={() => onNavigateToAllIssues("Closed", "All")}
+            >
               Closed Issues →
             </DefaultButton>
           </Stack>

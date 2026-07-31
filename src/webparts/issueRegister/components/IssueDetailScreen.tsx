@@ -242,7 +242,7 @@ export const IssueDetailScreen: React.FC<IIssueDetailScreenProps> = ({
   const issueLabel = issue.IssueID || `#${issue.ID}`;
 
   return (
-    <Stack tokens={{ padding: 24, childrenGap: 24 }} styles={{ root: { maxWidth: 760 } }}>
+    <Stack tokens={{ padding: 24, childrenGap: 24 }} styles={{ root: { maxWidth: 760, margin: "0 auto" } }}>
       <Stack horizontal verticalAlign="center" tokens={{ childrenGap: 10 }} wrap>
         <Text variant="xLarge" styles={{ root: { fontWeight: 700, color: theme.palette.themePrimary } }}>
           {issueLabel}

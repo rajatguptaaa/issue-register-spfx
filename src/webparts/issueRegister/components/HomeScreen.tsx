@@ -22,12 +22,17 @@ export const HomeScreen: React.FC<IHomeScreenProps> = ({ onNavigate }) => {
       horizontalAlign="center"
       verticalAlign="center"
       tokens={{ childrenGap: 20, padding: 56 }}
-      styles={{ root: { minHeight: 420 } }}
     >
       <DefaultButton
         onClick={() => onNavigate("submit")}
         styles={{
-          root: { background: ACCENTS.register.base, color: "#fff", height: 48, minWidth: 180, border: "none" },
+          root: {
+            background: ACCENTS.register.base,
+            color: "#fff",
+            height: 48,
+            minWidth: 180,
+            border: "none",
+          },
           rootHovered: { background: ACCENTS.register.hover, color: "#fff" },
         }}
       >
@@ -38,7 +43,13 @@ export const HomeScreen: React.FC<IHomeScreenProps> = ({ onNavigate }) => {
       <DefaultButton
         onClick={() => onNavigate("dashboard")}
         styles={{
-          root: { background: ACCENTS.dashboard.base, color: "#fff", height: 48, minWidth: 180, border: "none" },
+          root: {
+            background: ACCENTS.dashboard.base,
+            color: "#fff",
+            height: 48,
+            minWidth: 180,
+            border: "none",
+          },
           rootHovered: { background: ACCENTS.dashboard.hover, color: "#fff" },
         }}
       >
@@ -49,7 +60,13 @@ export const HomeScreen: React.FC<IHomeScreenProps> = ({ onNavigate }) => {
       <DefaultButton
         onClick={() => onNavigate("table")}
         styles={{
-          root: { background: ACCENTS.table.base, color: "#fff", height: 48, minWidth: 180, border: "none" },
+          root: {
+            background: ACCENTS.table.base,
+            color: "#fff",
+            height: 48,
+            minWidth: 180,
+            border: "none",
+          },
           rootHovered: { background: ACCENTS.table.hover, color: "#fff" },
         }}
       >

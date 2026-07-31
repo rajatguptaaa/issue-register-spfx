@@ -77,8 +77,8 @@ const IssueRegister: React.FC<IIssueRegisterProps> = ({
         styles={{
           root: {
             background: "linear-gradient(180deg, #eaf1f7 0%, #ffffff 100%)",
-            minHeight: 480,
             width: "100%",
+            minWidth: 0,
             overflowX: "hidden",
           },
         }}

@@ -12,7 +12,7 @@ import { useTheme } from "@fluentui/react/lib/Theme";
 import { IssueService } from "../services/IssueService";
 import styles from "./IssueRegister.module.scss";
 import { IssueDomain } from "../models/IIssueItem";
-import { calculateIssueScore,isTargetDateValid  } from "../utils/issueLogic";
+import { calculateIssueScore, isTargetDateValid } from "../utils/issueLogic";
 
 export interface IRegisterIssueScreenProps {
   onBack: () => void;
@@ -260,6 +260,7 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
               border: `1px solid ${theme.palette.themeLight}`,
               borderRadius: theme.effects.roundedCorner4,
               maxWidth: 500,
+              margin: "0 auto",
             },
           }}
         >
@@ -269,13 +270,12 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
               styles={{ root: { color: "#3b6d11", fontSize: 20 } }}
             />
             <Text variant="large" styles={{ root: { fontWeight: 600 } }}>
-              Issue submitted successfully
+              Request Submitted Successfully
             </Text>
           </Stack>
-          <Text>Internal record ID: {submittedId}</Text>
           <Text>
-            The official Issue ID (e.g. ISS-0001) will appear shortly once Power
-            Automate processes it.
+            Your issue has been logged and is now being tracked. A unique Issue
+            ID will be assigned to your request shortly.
           </Text>
           <Stack horizontal tokens={{ childrenGap: 12 }}>
             <DefaultButton onClick={onBack}>← Back to Home</DefaultButton>
@@ -288,7 +288,7 @@ export const RegisterIssueScreen: React.FC<IRegisterIssueScreenProps> = ({
         <fieldset disabled={submitting} className={styles.formFieldset}>
           <Stack
             tokens={{ childrenGap: 16 }}
-            styles={{ root: { maxWidth: 460 } }}
+            styles={{ root: { maxWidth: 460, margin: "0 auto" } }}
           >
             <Dropdown
               label="Issue Domain"

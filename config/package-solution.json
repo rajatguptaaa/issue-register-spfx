@@ -8,18 +8,18 @@
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,
     "developer": {
-      "name": "",
-      "websiteUrl": "",
+      "name": "Rajat Kumar Gupta",
+      "websiteUrl": "https://github.com/rajatguptaaa/issue-register-spfx",
       "privacyUrl": "",
       "termsOfUseUrl": "",
       "mpnId": "Undefined-1.23.2"
     },
     "metadata": {
       "shortDescription": {
-        "default": "issue-register-spfx description"
+        "default": "IT Infra Issue Register — log, score, track, and resolve infrastructure issues"
       },
       "longDescription": {
-        "default": "issue-register-spfx description"
+        "default": "SPFx web part suite for logging, scoring, tracking, and resolving IT infrastructure issues against a SharePoint list, with role-based close permissions and meeting notes history."
       },
       "screenshotPaths": [],
       "videoUrl": "",
@@ -27,8 +27,8 @@
     },
     "features": [
       {
-        "title": "issue-register-spfx Feature",
-        "description": "The feature that activates elements of the issue-register-spfx solution.",
+        "title": "Issue Register Feature",
+        "description": "Deploys the Issue Register web part.",
         "id": "5dd40b47-c7cc-438f-bf7a-4f70e6a0b0a5",
         "version": "1.0.0.0"
       }

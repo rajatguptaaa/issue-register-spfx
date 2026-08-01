@@ -1,3 +1,4 @@
+![Build and Test](https://github.com/rajatguptaaa/issue-register-spfx/actions/workflows/ci.yml/badge.svg)
 # issue-register-spfx
 
 ## Summary
